@@ -1,0 +1,22 @@
+base_branch: main
+base_schema_path: ''
+database_url: null
+db_connector_type: raw_sql
+exclude_patterns:
+- '**/venv/**'
+- '**/__pycache__/**'
+- '**/node_modules/**'
+git_enabled: false
+ignore_warnings: false
+include_patterns:
+- '*.py'
+- '*.sql'
+max_depth: 10
+output_file: null
+output_format: console
+programming_language: python
+project_path: /Users/xiamuguizhi/code/SchemaLinter
+strict_mode: false
+target_branch: HEAD
+target_schema_path: ''
+verbose: false
