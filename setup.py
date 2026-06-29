@@ -21,7 +21,7 @@ setup(
     description="数据库模式变更影响分析工具",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    author="SchemaLinter Team",
+    author="xmgz",
     url="https://github.com/xmgzxmgz/SchemaLinter",
     packages=find_packages(),
     install_requires=[

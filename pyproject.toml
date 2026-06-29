@@ -10,7 +10,7 @@ readme = "README.md"
 license = "MIT"
 requires-python = ">=3.8"
 authors = [
-    {name = "SchemaLinter Team"},
+    {name = "xmgz", email = "xmgzdm@gmail.com"},
 ]
 keywords = ["database", "schema", "lint", "analysis", "migration"]
 classifiers = [

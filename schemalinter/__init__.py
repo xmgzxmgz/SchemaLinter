@@ -5,7 +5,7 @@ SchemaLinter - 数据库模式变更影响分析工具
 """
 
 __version__ = "1.0.0"
-__author__ = "SchemaLinter Team"
+__author__ = "xmgz"
 __description__ = "数据库模式变更影响分析工具"
 
 from .core.analyzer import SchemaLinter
