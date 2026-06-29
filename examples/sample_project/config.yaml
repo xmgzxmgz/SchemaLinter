@@ -16,6 +16,7 @@ file_patterns:
   exclude:
     - "**/__pycache__/**"
     - "**/tests/**"
+    - "**/venv/**"
 
 # 输出配置
 output:

@@ -1,11 +1,51 @@
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
 *.egg-info/
+*.egg
 .eggs/
 dist/
 build/
+sdist/
+wheels/
+MANIFEST
+
+# Virtual environments
 .venv/
-.mypy_cache/
+venv/
+ENV/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# Testing / Coverage
 .pytest_cache/
+.mypy_cache/
+.tox/
+.nox/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Project-specific
+.schemalinter_cache/
+*.log
 .history/
+
+# Distribution
+*.whl
+*.tar.gz

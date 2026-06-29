@@ -2,7 +2,7 @@
 # 这是一个完整的配置示例，展示了所有可用的配置选项
 
 # 项目基本信息
-project_path: "/path/to/your/project"
+project_path: "{{PROJECT_ROOT}}"
 programming_language: "python"  # 支持: python, java
 db_connector_type: "sqlalchemy"  # 支持: raw_sql, sqlalchemy, hibernate
 
@@ -17,7 +17,7 @@ file_patterns:
     - "**/*.py"      # 所有 Python 文件
     - "**/*.sql"     # 所有 SQL 文件
     - "src/**/*.java"  # src 目录下的 Java 文件
-  
+
   # 排除的文件模式
   exclude:
     - "**/migrations/**"  # 排除数据库迁移文件
@@ -28,110 +28,12 @@ file_patterns:
     - "**/venv/**"        # 排除虚拟环境
     - "**/.git/**"        # 排除 Git 目录
 
-# Git 集成配置 (可选)
-git:
-  enabled: false           # 是否启用 Git 集成
-  base_branch: "main"      # 基础分支
-  target_branch: "develop" # 目标分支
-  schema_file_path: "database/schema.sql"  # 模式文件在仓库中的路径
-
-# 数据库连接配置 (可选，用于直接从数据库获取模式)
-database:
-  enabled: false
-  connection_string: "postgresql://user:password@localhost:5432/dbname"
-  base_connection: null    # 基础数据库连接
-  target_connection: null  # 目标数据库连接
-
-# 解析器配置
-parsers:
-  python:
-    # Python 特定配置
-    detect_sqlalchemy_models: true   # 检测 SQLAlchemy 模型
-    detect_raw_sql: true             # 检测原生 SQL 字符串
-    sql_string_patterns:             # SQL 字符串匹配模式
-      - "SELECT.*FROM"
-      - "INSERT.*INTO"
-      - "UPDATE.*SET"
-      - "DELETE.*FROM"
-    
-  java:
-    # Java 特定配置
-    detect_hibernate_entities: true  # 检测 Hibernate 实体
-    detect_jdbc_sql: true           # 检测 JDBC SQL
-    annotation_patterns:            # 注解匹配模式
-      - "@Entity"
-      - "@Table"
-      - "@Column"
-
-# 分析配置
-analysis:
-  # 影响级别阈值
-  impact_levels:
-    critical:  # 严重问题的条件
-      - "table_deleted"
-      - "column_deleted"
-      - "column_type_changed_incompatible"
-    
-    warning:   # 警告问题的条件
-      - "table_renamed"
-      - "column_renamed"
-      - "column_type_changed_compatible"
-    
-    info:      # 信息提示的条件
-      - "table_added"
-      - "column_added"
-      - "index_added"
-      - "index_deleted"
-  
-  # 类型兼容性规则
-  type_compatibility:
-    # 兼容的类型变更 (不会产生严重问题)
-    compatible_changes:
-      - ["VARCHAR(50)", "VARCHAR(100)"]  # 字符串长度增加
-      - ["INT", "BIGINT"]                # 整数类型扩展
-      - ["DECIMAL(10,2)", "DECIMAL(12,2)"] # 精度增加
-    
-    # 不兼容的类型变更 (会产生严重问题)
-    incompatible_changes:
-      - ["VARCHAR(100)", "VARCHAR(50)"]  # 字符串长度减少
-      - ["BIGINT", "INT"]                # 整数类型收缩
-      - ["VARCHAR", "INT"]               # 类型完全不同
-
 # 输出配置
 output:
   format: "console"  # 输出格式: console, json, markdown
   file: null         # 输出文件路径 (null 表示输出到控制台)
-  
-  # 控制台输出配置
-  console:
-    use_colors: true      # 使用彩色输出
-    show_progress: true   # 显示进度条
-    max_issues_display: 50 # 最大显示问题数量
-  
-  # JSON 输出配置
-  json:
-    indent: 2            # JSON 缩进空格数
-    include_metadata: true # 包含元数据
-  
-  # Markdown 输出配置
-  markdown:
-    include_toc: true    # 包含目录
-    include_statistics: true # 包含统计信息
 
-# 高级配置
-advanced:
-  # 并发配置
-  max_workers: 4         # 最大工作线程数
-  
-  # 缓存配置
-  enable_cache: true     # 启用解析缓存
-  cache_dir: ".schemalinter_cache"  # 缓存目录
-  
-  # 调试配置
-  debug: false           # 调试模式
-  log_level: "INFO"      # 日志级别: DEBUG, INFO, WARNING, ERROR
-  log_file: null         # 日志文件路径
-  
-  # 性能配置
-  max_file_size: "10MB"  # 最大文件大小限制
-  timeout: 300           # 分析超时时间 (秒)
+# 分析配置
+strict_mode: false
+ignore_warnings: false
+max_depth: 10

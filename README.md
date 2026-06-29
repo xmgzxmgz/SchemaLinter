@@ -1,22 +1,26 @@
 # SchemaLinter
 
+![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
+![Version](https://img.shields.io/badge/Version-1.0.0-orange)
+
 一个强大的数据库模式变更影响分析工具，帮助开发者自动识别数据库结构变化对应用代码的影响。
 
 ## 功能特性
 
-- 🔍 **智能变更检测**: 自动识别数据库模式的各种变更类型
-- 📝 **多语言代码解析**: 支持 Python、Java 等主流编程语言
-- 🔗 **ORM 框架支持**: 支持 SQLAlchemy、Hibernate 等 ORM 框架
-- 📊 **多格式报告**: 支持控制台、JSON、Markdown 等多种输出格式
-- ⚙️ **灵活配置**: 支持配置文件和命令行参数
-- 🎯 **精准分析**: 准确定位受影响的代码文件和行号
+- **智能变更检测**: 自动识别数据库模式的各种变更类型
+- **多语言代码解析**: 支持 Python、Java 等主流编程语言
+- **ORM 框架支持**: 支持 SQLAlchemy、Hibernate 等 ORM 框架
+- **多格式报告**: 支持控制台、JSON、Markdown 等多种输出格式
+- **灵活配置**: 支持配置文件和命令行参数
+- **精准分析**: 准确定位受影响的代码文件和行号
 
 ## 安装
 
 ### 从源码安装
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/xmgzxmgz/SchemaLinter.git
 cd SchemaLinter
 pip install -e .
 ```
@@ -41,7 +45,7 @@ schemalinter init
 
 ```yaml
 # 项目基本信息
-project_path: "/path/to/your/project"
+project_path: "{{PROJECT_ROOT}}"
 programming_language: "python"
 db_connector_type: "sqlalchemy"
 
@@ -57,11 +61,8 @@ file_patterns:
   exclude:
     - "**/migrations/**"
     - "**/tests/**"
-
-# 输出配置
-output:
-  format: "console"
-  file: null
+    - "**/venv/**"
+    - "**/__pycache__/**"
 ```
 
 ### 3. 运行分析
@@ -133,12 +134,10 @@ schemalinter validate --config schemalinter.yaml
 ### Python
 - 原生 SQL 字符串
 - SQLAlchemy ORM
-- Django ORM (计划支持)
 
 ### Java
 - JDBC 原生 SQL
 - Hibernate ORM (计划支持)
-- MyBatis (计划支持)
 
 ## 报告格式
 
@@ -147,25 +146,6 @@ schemalinter validate --config schemalinter.yaml
 
 ### JSON 格式
 结构化的 JSON 报告，适合程序化处理和 CI/CD 集成。
-
-```json
-{
-  "metadata": {
-    "tool": "SchemaLinter",
-    "version": "1.0.0",
-    "generated_at": "2024-01-01T12:00:00"
-  },
-  "summary": {
-    "total_changes": 5,
-    "total_issues": 3,
-    "critical_issues": 1,
-    "warning_issues": 2
-  },
-  "changes": [...],
-  "issues": [...],
-  "statistics": {...}
-}
-```
 
 ### Markdown 格式
 可读性强的 Markdown 报告，适合文档和展示。
@@ -185,11 +165,6 @@ schemalinter validate --config schemalinter.yaml
 - `file_patterns.include`: 包含的文件模式
 - `file_patterns.exclude`: 排除的文件模式
 
-### Git 配置 (计划支持)
-- `git.enabled`: 是否启用 Git 集成
-- `git.base_branch`: 基础分支
-- `git.target_branch`: 目标分支
-
 ### 输出配置
 - `output.format`: 输出格式 (console, json, markdown)
 - `output.file`: 输出文件路径
@@ -197,9 +172,8 @@ schemalinter validate --config schemalinter.yaml
 ## 退出码
 
 - `0`: 分析完成，无问题
-- `1`: 分析完成，发现警告级别问题
-- `2`: 分析完成，发现严重问题
-- `其他`: 分析过程中出现错误
+- `1`: 分析完成，发现问题（严重或警告级别）
+- `2`: 分析过程中出现错误（配置错误、文件不存在等）
 
 ## 开发指南
 
@@ -223,6 +197,13 @@ schemalinter/
 └── cli.py              # 命令行接口
 ```
 
+### 运行测试
+
+```bash
+pip install -e ".[dev]"
+pytest
+```
+
 ### 添加新的解析器
 
 1. 继承 `BaseParser` 类
@@ -236,18 +217,31 @@ schemalinter/
 2. 实现 `generate_report()` 方法
 3. 在 CLI 中添加新的输出格式选项
 
-## 贡献
+## Known Limitations
+
+- **Git integration is not yet implemented.** The `git_enabled` config option is a placeholder for future development.
+- **Multi-table column attribution is heuristic.** When a SQL query references multiple tables, column names in WHERE/SET/ORDER BY/GROUP BY clauses are attributed to the first table found. Qualified references (`table.column`) are correctly attributed.
+- **ALTER/DROP parsing is basic.** The SQL parser handles common ALTER and DROP patterns but may not cover all vendor-specific SQL syntax (e.g., Oracle, SQL Server extensions).
+- **Java and JavaScript parsers are not implemented.** Only Python parsing is fully supported. Other languages fall back to the SQL file parser.
+- **Django ORM support is planned but not implemented.** Only raw SQL strings and SQLAlchemy models are detected.
+- **Column type comparisons are string-based.** `VARCHAR(100)` and `VARCHAR(200)` are treated as different types even when the change is safe (expansion).
+- **No support for views, stored procedures, or triggers.** Only CREATE TABLE, ALTER TABLE, and DROP TABLE DDL is analyzed.
+
+## Contributing
 
 欢迎提交 Issue 和 Pull Request！
 
-## 许可证
+## License
 
 MIT License
 
-## 更新日志
+## Changelog
 
 ### v1.0.0
-- 初始版本发布
-- 支持 Python 和 SQL 文件解析
-- 支持多种输出格式
-- 完整的 CLI 工具
+- Initial release
+- Python and SQL file parsing
+- Multiple output formats (console, JSON, Markdown)
+- Full CLI tool with `analyze`, `init`, and `validate` commands
+- ALTER TABLE and DROP TABLE statement parsing
+- Issue deduplication
+- Proper logging throughout

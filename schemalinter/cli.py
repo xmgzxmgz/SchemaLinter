@@ -6,6 +6,7 @@ SchemaLinter 命令行接口
 
 import os
 import sys
+import logging
 import click
 from pathlib import Path
 from typing import Optional
@@ -14,20 +15,25 @@ from .core.config import Config, create_default_config
 from .core.analyzer import SchemaLinter
 from .reporters import ConsoleReporter, JSONReporter, MarkdownReporter
 
+# 版本号统一来源
+from . import __version__
+
+logger = logging.getLogger("schemalinter")
+
 
 @click.group()
-@click.version_option(version="1.0.0", prog_name="SchemaLinter")
+@click.version_option(version=__version__, prog_name="SchemaLinter")
 def cli():
     """
     SchemaLinter - 数据库模式变更影响分析工具
-    
+
     自动分析数据库模式变更对应用代码的影响，帮助开发者提前发现潜在问题。
     """
     pass
 
 
 @cli.command()
-@click.option('--project-path', '-p', 
+@click.option('--project-path', '-p',
               type=click.Path(exists=True, file_okay=False, dir_okay=True),
               help='项目根目录路径')
 @click.option('--base-schema', '-b',
@@ -74,29 +80,37 @@ def analyze(project_path: Optional[str],
            verbose: bool):
     """
     分析数据库模式变更对代码的影响
-    
+
     示例:
-    
+
     \b
     # 基本分析
     schemalinter analyze -p /path/to/project -b old_schema.sql -t new_schema.sql
-    
+
     \b
     # 使用配置文件
     schemalinter analyze -c config.yaml
-    
+
     \b
     # 生成 JSON 报告
     schemalinter analyze -p /path/to/project -b old.sql -t new.sql -f json -o report.json
     """
     try:
+        # 配置日志
+        log_level = logging.DEBUG if verbose else logging.WARNING
+        logging.basicConfig(
+            level=log_level,
+            format='%(name)s %(levelname)s: %(message)s',
+            stream=sys.stderr,
+        )
+
         # 加载配置
         if config:
             config_obj = Config.from_file(config)
         else:
             # 从命令行参数创建配置
             config_data = {}
-            
+
             if project_path:
                 config_data['project_path'] = project_path
             if base_schema:
@@ -107,7 +121,7 @@ def analyze(project_path: Optional[str],
                 config_data['programming_language'] = language
             if db_connector:
                 config_data['db_connector_type'] = db_connector
-            
+
             # 文件模式配置
             if include_patterns or exclude_patterns:
                 config_data['file_patterns'] = {}
@@ -115,59 +129,65 @@ def analyze(project_path: Optional[str],
                     config_data['file_patterns']['include'] = list(include_patterns)
                 if exclude_patterns:
                     config_data['file_patterns']['exclude'] = list(exclude_patterns)
-            
+
             # 输出配置
             config_data['output'] = {
                 'format': output_format,
                 'file': output_file
             }
-            
+
             config_obj = Config.from_dict(config_data)
-        
-        # 验证配置
-        config_obj.validate()
-        
+
+        # 验证配置 - 检查返回值
+        validation_errors = config_obj.validate()
+        if validation_errors:
+            for err in validation_errors:
+                click.echo(f"配置错误: {err}", err=True)
+            sys.exit(2)
+
         if verbose:
-            click.echo(f"📁 项目路径: {config_obj.project_path}")
-            click.echo(f"📄 基础模式: {config_obj.base_schema_path}")
-            click.echo(f"📄 目标模式: {config_obj.target_schema_path}")
-            click.echo(f"🔧 编程语言: {config_obj.programming_language}")
-            click.echo(f"🔗 数据库连接: {config_obj.db_connector_type}")
+            click.echo(f"项目路径: {config_obj.project_path}")
+            click.echo(f"基础模式: {config_obj.base_schema_path}")
+            click.echo(f"目标模式: {config_obj.target_schema_path}")
+            click.echo(f"编程语言: {config_obj.programming_language}")
+            click.echo(f"数据库连接: {config_obj.db_connector_type}")
             click.echo()
-        
+
         # 创建分析器
         linter = SchemaLinter(config_obj)
-        
+
         # 执行分析
-        click.echo("🔍 开始分析...")
+        click.echo("开始分析...")
         report = linter.analyze()
-        
+
+        # 确定输出格式（命令行参数优先于配置文件）
+        actual_format = output_format or config_obj.output_format
+        actual_output = output_file or config_obj.output_file
+
         # 生成报告
-        click.echo("📊 生成报告...")
-        reporter = _create_reporter(output_format, output_file)
+        click.echo("生成报告...")
+        reporter = _create_reporter(actual_format, actual_output)
         report_content = reporter.generate_report(report)
-        
+
         # 输出报告
-        if output_file and output_format != 'console':
+        if actual_output and actual_format != 'console':
             reporter.save_report(report)
-            click.echo(f"✅ 报告已保存到: {output_file}")
+            click.echo(f"报告已保存到: {actual_output}")
         else:
             click.echo(report_content)
-        
-        # 根据问题严重程度设置退出码
-        if report.critical_issues > 0:
-            sys.exit(2)  # 严重问题
-        elif report.warning_issues > 0:
-            sys.exit(1)  # 警告问题
+
+        # 退出码: 0 = 无问题, 1 = 有问题, 2 = 错误
+        if report.critical_issues > 0 or report.warning_issues > 0:
+            sys.exit(1)
         else:
-            sys.exit(0)  # 无问题
-            
+            sys.exit(0)
+
     except Exception as e:
-        click.echo(f"❌ 错误: {str(e)}", err=True)
+        click.echo(f"错误: {str(e)}", err=True)
         if verbose:
             import traceback
             click.echo(traceback.format_exc(), err=True)
-        sys.exit(1)
+        sys.exit(2)
 
 
 @cli.command()
@@ -182,27 +202,27 @@ def analyze(project_path: Optional[str],
 def init(output: str, format: str):
     """
     创建默认配置文件
-    
+
     生成一个包含所有可用选项的示例配置文件。
     """
     try:
         config = create_default_config()
-        
+
         if format.lower() == 'json':
             import json
             content = json.dumps(config.to_dict(), ensure_ascii=False, indent=2)
         else:
             import yaml
             content = yaml.dump(config.to_dict(), default_flow_style=False, allow_unicode=True)
-        
+
         with open(output, 'w', encoding='utf-8') as f:
             f.write(content)
-        
-        click.echo(f"✅ 默认配置文件已创建: {output}")
-        click.echo("📝 请根据您的项目需求修改配置文件")
-        
+
+        click.echo(f"默认配置文件已创建: {output}")
+        click.echo("请根据您的项目需求修改配置文件")
+
     except Exception as e:
-        click.echo(f"❌ 创建配置文件失败: {str(e)}", err=True)
+        click.echo(f"创建配置文件失败: {str(e)}", err=True)
         sys.exit(1)
 
 
@@ -213,7 +233,7 @@ def init(output: str, format: str):
 def validate(config: Optional[str]):
     """
     验证配置文件
-    
+
     检查配置文件的语法和内容是否正确。
     """
     try:
@@ -223,28 +243,34 @@ def validate(config: Optional[str]):
                 if os.path.exists(filename):
                     config = filename
                     break
-            
+
             if not config:
-                click.echo("❌ 未找到配置文件，请使用 --config 指定或运行 'schemalinter init' 创建", err=True)
+                click.echo("未找到配置文件，请使用 --config 指定或运行 'schemalinter init' 创建", err=True)
                 sys.exit(1)
-        
-        click.echo(f"🔍 验证配置文件: {config}")
-        
+
+        click.echo(f"验证配置文件: {config}")
+
         config_obj = Config.from_file(config)
-        config_obj.validate()
-        
-        click.echo("✅ 配置文件验证通过")
-        
+        errors = config_obj.validate()
+
+        if errors:
+            for err in errors:
+                click.echo(f"  [错误] {err}", err=True)
+            click.echo("\n配置文件验证失败")
+            sys.exit(1)
+
+        click.echo("配置文件验证通过")
+
         # 显示配置摘要
-        click.echo("\n📋 配置摘要:")
+        click.echo("\n配置摘要:")
         click.echo(f"  项目路径: {config_obj.project_path}")
         click.echo(f"  编程语言: {config_obj.programming_language}")
         click.echo(f"  数据库连接: {config_obj.db_connector_type}")
         click.echo(f"  基础模式: {config_obj.base_schema_path}")
         click.echo(f"  目标模式: {config_obj.target_schema_path}")
-        
+
     except Exception as e:
-        click.echo(f"❌ 配置文件验证失败: {str(e)}", err=True)
+        click.echo(f"配置文件验证失败: {str(e)}", err=True)
         sys.exit(1)
 
 
@@ -256,6 +282,10 @@ def _create_reporter(output_format: str, output_file: Optional[str]):
         return MarkdownReporter(output_file)
     else:
         return ConsoleReporter()
+
+
+# 入口点兼容（setup.py 的 console_scripts 指向这里）
+main = cli
 
 
 if __name__ == '__main__':

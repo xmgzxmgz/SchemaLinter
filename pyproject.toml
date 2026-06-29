@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "schemalinter"
+dynamic = ["version"]
+description = "数据库模式变更影响分析工具"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.8"
+authors = [
+    {name = "SchemaLinter Team"},
+]
+keywords = ["database", "schema", "lint", "analysis", "migration"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Database",
+    "Topic :: Software Development :: Quality Assurance",
+]
+dependencies = [
+    "sqlparse>=0.4.4",
+    "pyyaml>=6.0",
+    "click>=8.1",
+    "colorama>=0.4.6",
+    "tabulate>=0.9.0",
+]
+
+[project.optional-dependencies]
+git = ["gitpython>=3.1"]
+templates = ["jinja2>=3.1"]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/xmgzxmgz/SchemaLinter"
+Repository = "https://github.com/xmgzxmgz/SchemaLinter"
+Issues = "https://github.com/xmgzxmgz/SchemaLinter/issues"
+
+[project.scripts]
+schemalinter = "schemalinter.cli:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "schemalinter.__version__"}
