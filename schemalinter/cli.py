@@ -149,7 +149,7 @@ def analyze(project_path: Optional[str],
         
         # 输出报告
         if output_file and output_format != 'console':
-            reporter.save_report(report_content)
+            reporter.save_report(report)
             click.echo(f"✅ 报告已保存到: {output_file}")
         else:
             click.echo(report_content)

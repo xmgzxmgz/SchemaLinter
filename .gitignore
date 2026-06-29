@@ -1,1 +1,11 @@
-.history
+__pycache__/
+*.pyc
+*.egg-info/
+.eggs/
+dist/
+build/
+.venv/
+.mypy_cache/
+.pytest_cache/
+.DS_Store
+.history/

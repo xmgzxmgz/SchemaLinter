@@ -15,7 +15,7 @@ max_depth: 10
 output_file: null
 output_format: console
 programming_language: python
-project_path: /Users/xiamuguizhi/code/SchemaLinter
+project_path: .
 strict_mode: false
 target_branch: HEAD
 target_schema_path: ''

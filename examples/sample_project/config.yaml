@@ -1,13 +1,13 @@
 # SchemaLinter 示例项目配置文件
 
 # 项目基本信息
-project_path: "/Users/xiamuguizhi/code/SchemaLinter/examples/sample_project"
+project_path: "."
 programming_language: "python"
 db_connector_type: "sqlalchemy"
 
 # 数据库模式文件路径
-base_schema_path: "/Users/xiamuguizhi/code/SchemaLinter/examples/schemas/base_schema.sql"
-target_schema_path: "/Users/xiamuguizhi/code/SchemaLinter/examples/schemas/target_schema.sql"
+base_schema_path: "../schemas/base_schema.sql"
+target_schema_path: "../schemas/target_schema.sql"
 
 # 文件匹配模式
 file_patterns:
