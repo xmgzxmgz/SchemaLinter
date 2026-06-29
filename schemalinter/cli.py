@@ -33,6 +33,7 @@ def cli():
 
 
 @cli.command()
+@click.argument('path', required=False, type=click.Path(exists=True))
 @click.option('--project-path', '-p',
               type=click.Path(exists=True, file_okay=False, dir_okay=True),
               help='项目根目录路径')
@@ -67,7 +68,8 @@ def cli():
 @click.option('--verbose', '-v',
               is_flag=True,
               help='详细输出')
-def analyze(project_path: Optional[str],
+def analyze(path: Optional[str],
+           project_path: Optional[str],
            base_schema: Optional[str],
            target_schema: Optional[str],
            config: Optional[str],
@@ -84,7 +86,11 @@ def analyze(project_path: Optional[str],
     示例:
 
     \b
-    # 基本分析
+    # 分析一个项目目录（自动查找 .sql 文件）
+    schemalinter analyze /path/to/project
+
+    \b
+    # 指定 base 和 target schema
     schemalinter analyze -p /path/to/project -b old_schema.sql -t new_schema.sql
 
     \b
@@ -93,7 +99,7 @@ def analyze(project_path: Optional[str],
 
     \b
     # 生成 JSON 报告
-    schemalinter analyze -p /path/to/project -b old.sql -t new.sql -f json -o report.json
+    schemalinter analyze /path/to/project -f json -o report.json
     """
     try:
         # 配置日志
@@ -103,6 +109,42 @@ def analyze(project_path: Optional[str],
             format='%(name)s %(levelname)s: %(message)s',
             stream=sys.stderr,
         )
+
+        # 处理位置参数 PATH: 可以是目录或 .sql 文件
+        if path and not config:
+            path_resolved = Path(path).resolve()
+            if path_resolved.is_dir():
+                # 目录模式：自动查找 SQL 文件
+                if not project_path:
+                    config_data_project = str(path_resolved)
+                else:
+                    config_data_project = project_path
+                sql_files = sorted(path_resolved.glob('*.sql'))
+                if len(sql_files) >= 2:
+                    # 有 2 个或以上 SQL 文件：第一个作为 base，最后一个作为 target
+                    base_schema = str(sql_files[0])
+                    target_schema = str(sql_files[-1])
+                elif len(sql_files) == 1:
+                    # 只有一个 SQL 文件：用作 target，base 为空（单文件分析模式）
+                    base_schema = None
+                    target_schema = str(sql_files[0])
+                else:
+                    click.echo(f"错误: 目录 {path_resolved} 中没有找到 .sql 文件", err=True)
+                    sys.exit(2)
+            elif path_resolved.is_file() and str(path_resolved).endswith('.sql'):
+                # 单文件模式：用作 target，目录作为 project_path
+                if not project_path:
+                    config_data_project = str(path_resolved.parent)
+                else:
+                    config_data_project = project_path
+                base_schema = None
+                target_schema = str(path_resolved)
+            else:
+                click.echo(f"错误: {path_resolved} 不是有效的目录或 .sql 文件", err=True)
+                sys.exit(2)
+
+            if 'config_data_project' in dir() and not project_path:
+                project_path = config_data_project
 
         # 加载配置
         if config:

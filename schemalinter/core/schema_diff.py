@@ -382,6 +382,15 @@ class SchemaDiff:
 
         return self._analyze_differences(base_tables, target_tables)
 
+    def compare_schemas_from_contents(self, base_content: str, target_path: str) -> List[SchemaChange]:
+        """比较一个空的基础模式与一个目标文件，返回变更列表（单文件模式）"""
+        base_parser = SQLParser()
+        base_tables = base_parser.parse_sql_content(base_content) if base_content else {}
+
+        target_tables = self.parser.parse_sql_file(target_path)
+
+        return self._analyze_differences(base_tables, target_tables)
+
     def compare_schema_content(self, base_content: str, target_content: str) -> List[SchemaChange]:
         """比较两个模式内容，返回变更列表"""
         base_parser = SQLParser()

@@ -118,15 +118,14 @@ class Config:
             errors.append(f"项目路径不存在: {self.project_path}")
 
         if not self.git_enabled:
-            if not self.base_schema_path:
-                errors.append("base_schema_path 不能为空")
-            elif not os.path.exists(self.base_schema_path):
-                errors.append(f"基础模式文件不存在: {self.base_schema_path}")
-
             if not self.target_schema_path:
-                errors.append("target_schema_path 不能为空")
+                errors.append("target_schema_path 不能为空（请至少提供一个 .sql 文件）")
             elif not os.path.exists(self.target_schema_path):
                 errors.append(f"目标模式文件不存在: {self.target_schema_path}")
+
+            # base_schema_path is optional for single-file analysis
+            if self.base_schema_path and not os.path.exists(self.base_schema_path):
+                errors.append(f"基础模式文件不存在: {self.base_schema_path}")
 
         if self.programming_language not in ['python', 'java', 'javascript', 'typescript']:
             errors.append(f"不支持的编程语言: {self.programming_language}")

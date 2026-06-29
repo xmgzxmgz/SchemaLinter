@@ -134,11 +134,17 @@ class SchemaLinter:
         if self.config.git_enabled:
             # TODO: 实现Git集成
             raise NotImplementedError("Git集成功能尚未实现")
-        else:
-            return self.schema_diff.compare_schemas(
-                self.config.base_schema_path,
-                self.config.target_schema_path
+
+        if not self.config.base_schema_path:
+            # Single-file mode: treat all tables in target as newly added
+            return self.schema_diff.compare_schemas_from_contents(
+                "", self.config.target_schema_path
             )
+
+        return self.schema_diff.compare_schemas(
+            self.config.base_schema_path,
+            self.config.target_schema_path
+        )
 
     def _parse_code_references(self) -> List[CodeReference]:
         """解析代码引用"""
