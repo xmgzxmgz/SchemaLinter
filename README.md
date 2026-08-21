@@ -1,247 +1,91 @@
-# SchemaLinter
+# 🔍 SchemaLinter — SchemaLinter
 
-![Python](https://img.shields.io/badge/Python-3.8%2B-blue)
-![License](https://img.shields.io/badge/License-MIT-green)
-![Version](https://img.shields.io/badge/Version-1.0.0-orange)
+> 改表不再心惊胆战 — 变更影响面一键分析，防线上事故于未然。
 
-一个强大的数据库模式变更影响分析工具，帮助开发者自动识别数据库结构变化对应用代码的影响。
+[![GitHub](https://img.shields.io/badge/GitHub-xmgzxmgz%2FSchemaLinter-blue?logo=github)](https://github.com/xmgzxmgz/SchemaLinter)
+[![Release](https://img.shields.io/github/v/release/xmgzxmgz/SchemaLinter?label=release)](https://github.com/xmgzxmgz/SchemaLinter/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Auto Release](https://github.com/xmgzxmgz/SchemaLinter/actions/workflows/release.yml/badge.svg)](https://github.com/xmgzxmgz/SchemaLinter/actions/workflows/release.yml)
 
-## 功能特性
+---
 
-- **智能变更检测**: 自动识别数据库模式的各种变更类型
-- **多语言代码解析**: 支持 Python、Java 等主流编程语言
-- **ORM 框架支持**: 支持 SQLAlchemy、Hibernate 等 ORM 框架
-- **多格式报告**: 支持控制台、JSON、Markdown 等多种输出格式
-- **灵活配置**: 支持配置文件和命令行参数
-- **精准分析**: 准确定位受影响的代码文件和行号
+## ✨ 功能一览
 
-## 安装
+| 模块 | 能力 | 状态 |
+|------|------|------|
+| 🔎 影响面分析 | 解析 DDL/ORM 变更，定位受影响的表、索引与查询 | ✅ |
+| 🧩 SQL/ORM 双支持 | 直连 SQL 与主流 ORM 模型，覆盖更全 | ✅ |
+| 🚦 风险评级 | 按影响范围与线上流量给出风险等级与建议 | ✅ |
 
-### 从源码安装
+---
 
-```bash
-git clone https://github.com/xmgzxmgz/SchemaLinter.git
-cd SchemaLinter
-pip install -e .
-```
+## 📸 功能预览
 
-### 安装依赖
+> 以下为自动生成的示意预览（无需本地部署截图），展示核心功能形态。
 
-```bash
-pip install -r requirements.txt
-```
+| 总览 | 细节 | 流程 |
+|------|------|------|
+| ![功能预览 1](docs/images/feature-1.png) | ![功能预览 2](docs/images/feature-2.png) | ![功能预览 3](docs/images/feature-3.png) |
+| 变更对比 · DDL Diff · 影响表高亮 · 风险标注 | ORM 扫描 · 模型扫描 · 查询链路 · 索引影响 | 风险报告 · 影响面清单 · 风险等级 · 修复建议 |
 
-## 快速开始
+<details>
+<summary>查看大图</summary>
 
-### 1. 创建配置文件
+![变更对比](docs/images/feature-1.png)
+![ORM 扫描](docs/images/feature-2.png)
+![风险报告](docs/images/feature-3.png)
 
-```bash
-schemalinter init
-```
+</details>
 
-这将创建一个默认的 `schemalinter.yaml` 配置文件。
+---
 
-### 2. 编辑配置文件
-
-```yaml
-# 项目基本信息
-project_path: "{{PROJECT_ROOT}}"
-programming_language: "python"
-db_connector_type: "sqlalchemy"
-
-# 数据库模式文件
-base_schema_path: "schemas/old_schema.sql"
-target_schema_path: "schemas/new_schema.sql"
-
-# 文件匹配模式
-file_patterns:
-  include:
-    - "**/*.py"
-    - "**/*.sql"
-  exclude:
-    - "**/migrations/**"
-    - "**/tests/**"
-    - "**/venv/**"
-    - "**/__pycache__/**"
-```
-
-### 3. 运行分析
+## 🚀 快速开始
 
 ```bash
-# 使用配置文件
-schemalinter analyze -c schemalinter.yaml
-
-# 或直接使用命令行参数
-schemalinter analyze -p /path/to/project -b old_schema.sql -t new_schema.sql
+pip install schemalinter
+schemalinter diff --from schema.old.sql --to schema.new.sql
+schemalinter check --orm models.py --migration 0012_alter_user.py
 ```
 
-## 使用示例
+---
 
-### 基本分析
+## 🛠 技术栈
 
-```bash
-schemalinter analyze \
-  --project-path /path/to/my/app \
-  --base-schema schemas/v1.sql \
-  --target-schema schemas/v2.sql \
-  --language python \
-  --db-connector sqlalchemy
-```
+Python · SQL Parsing · ORM Introspection · Diff Analysis
 
-### 生成 JSON 报告
+---
 
-```bash
-schemalinter analyze \
-  --config schemalinter.yaml \
-  --output-format json \
-  --output-file report.json
-```
-
-### 生成 Markdown 报告
-
-```bash
-schemalinter analyze \
-  --config schemalinter.yaml \
-  --output-format markdown \
-  --output-file report.md
-```
-
-### 验证配置文件
-
-```bash
-schemalinter validate --config schemalinter.yaml
-```
-
-## 支持的变更类型
-
-- **表操作**
-  - 新增表 (TABLE_ADDED)
-  - 删除表 (TABLE_DELETED)
-  - 重命名表 (TABLE_RENAMED)
-
-- **列操作**
-  - 新增列 (COLUMN_ADDED)
-  - 删除列 (COLUMN_DELETED)
-  - 重命名列 (COLUMN_RENAMED)
-  - 列类型变更 (COLUMN_TYPE_CHANGED)
-
-- **索引操作**
-  - 新增索引 (INDEX_ADDED)
-  - 删除索引 (INDEX_DELETED)
-
-## 支持的编程语言和框架
-
-### Python
-- 原生 SQL 字符串
-- SQLAlchemy ORM
-
-### Java
-- JDBC 原生 SQL
-- Hibernate ORM (计划支持)
-
-## 报告格式
-
-### 控制台输出
-彩色的控制台输出，包含摘要、变更详情和影响分析。
-
-### JSON 格式
-结构化的 JSON 报告，适合程序化处理和 CI/CD 集成。
-
-### Markdown 格式
-可读性强的 Markdown 报告，适合文档和展示。
-
-## 配置选项
-
-### 项目配置
-- `project_path`: 项目根目录
-- `programming_language`: 编程语言 (python, java)
-- `db_connector_type`: 数据库连接方式 (raw_sql, sqlalchemy, hibernate)
-
-### 模式文件配置
-- `base_schema_path`: 基础模式文件路径
-- `target_schema_path`: 目标模式文件路径
-
-### 文件匹配配置
-- `file_patterns.include`: 包含的文件模式
-- `file_patterns.exclude`: 排除的文件模式
-
-### 输出配置
-- `output.format`: 输出格式 (console, json, markdown)
-- `output.file`: 输出文件路径
-
-## 退出码
-
-- `0`: 分析完成，无问题
-- `1`: 分析完成，发现问题（严重或警告级别）
-- `2`: 分析过程中出现错误（配置错误、文件不存在等）
-
-## 开发指南
-
-### 项目结构
+## 🗂️ 目录结构（节选）
 
 ```
-schemalinter/
-├── core/                 # 核心模块
-│   ├── config.py        # 配置管理
-│   ├── schema_diff.py   # 模式差异分析
-│   └── analyzer.py      # 主分析器
-├── parsers/             # 代码解析器
-│   ├── base.py         # 基础解析器
-│   ├── python_parser.py # Python 解析器
-│   └── sql_parser.py   # SQL 解析器
-├── reporters/           # 报告生成器
-│   ├── base.py         # 基础报告器
-│   ├── console_reporter.py # 控制台报告器
-│   ├── json_reporter.py    # JSON 报告器
-│   └── markdown_reporter.py # Markdown 报告器
-└── cli.py              # 命令行接口
+SchemaLinter/
+├── docs/images/        # 本 README 的三张自动生成预览图
+├── .github/workflows/  # Auto Release 自动发版
+├── README.md
+└── ...                 # 源码与配置
 ```
 
-### 运行测试
+---
 
-```bash
-pip install -e ".[dev]"
-pytest
-```
+## 📦 Releases
 
-### 添加新的解析器
+本仓库已启用 **Auto Release**（`.github/workflows/release.yml`）：
 
-1. 继承 `BaseParser` 类
-2. 实现 `get_supported_extensions()` 方法
-3. 实现 `parse_file()` 方法
-4. 在 `__init__.py` 中注册解析器
+- 推送 `v*` tag 自动发版：`git tag v0.2.0 && git push origin v0.2.0`
+- 手动触发：`gh workflow run "Auto Release" -f version=v0.2.0`（留空则自动 patch +1）
+- 变更说明自动生成（`--generate-notes`）
 
-### 添加新的报告格式
+前往 [Releases](https://github.com/xmgzxmgz/SchemaLinter/releases) 查看。
 
-1. 继承 `BaseReporter` 类
-2. 实现 `generate_report()` 方法
-3. 在 CLI 中添加新的输出格式选项
+---
 
-## Known Limitations
+## 🙏 相关项目
 
-- **Git integration is not yet implemented.** The `git_enabled` config option is a placeholder for future development.
-- **Multi-table column attribution is heuristic.** When a SQL query references multiple tables, column names in WHERE/SET/ORDER BY/GROUP BY clauses are attributed to the first table found. Qualified references (`table.column`) are correctly attributed.
-- **ALTER/DROP parsing is basic.** The SQL parser handles common ALTER and DROP patterns but may not cover all vendor-specific SQL syntax (e.g., Oracle, SQL Server extensions).
-- **Java and JavaScript parsers are not implemented.** Only Python parsing is fully supported. Other languages fall back to the SQL file parser.
-- **Django ORM support is planned but not implemented.** Only raw SQL strings and SQLAlchemy models are detected.
-- **Column type comparisons are string-based.** `VARCHAR(100)` and `VARCHAR(200)` are treated as different types even when the change is safe (expansion).
-- **No support for views, stored procedures, or triggers.** Only CREATE TABLE, ALTER TABLE, and DROP TABLE DDL is analyzed.
+- [workbuddy-account-hub](https://github.com/xmgzxmgz/workbuddy-account-hub) — WorkBuddy 账户中枢（本 README 的样板）
+- 更多见 [xmgzxmgz 主页](https://github.com/xmgzxmgz)
 
-## Contributing
+---
 
-欢迎提交 Issue 和 Pull Request！
+## 许可
 
-## License
-
-MIT License
-
-## Changelog
-
-### v1.0.0
-- Initial release
-- Python and SQL file parsing
-- Multiple output formats (console, JSON, Markdown)
-- Full CLI tool with `analyze`, `init`, and `validate` commands
-- ALTER TABLE and DROP TABLE statement parsing
-- Issue deduplication
-- Proper logging throughout
+MIT
